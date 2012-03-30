@@ -15,31 +15,37 @@ using namespace std;
 
 void getExpression(string & expression);
 bool evaluateParenthesis(string);
-void printPostfix(string);
+string evalPostfix(string);
 bool isNumeric(char);
 bool isOperator(char);
-
+bool isHigherOp(char, char);
 
 int main (int argc, const char * argv[])
 {
     cout << "0.0.1\n";
     
     string expressionString;
-    stack<char> operators;
-    stack<double> numbers;
     
     getExpression(expressionString);
-    
-    if(evaluateParenthesis(expressionString))
-        cout << "Parenthesis matched.\n";
-    else
-        cout << "Parenthesis mismatched.\n";
+    while(expressionString != "0")
+    {
+	    if(evaluateParenthesis(expressionString))
+		{
+	    	cout << "Parenthesis matched.\n";
+			cout << evalPostfix(expressionString);
+		}
+	    else
+	        cout << "Parenthesis mismatched.\n";
+
+    	getExpression(expressionString);
+	}
     
     return 0;
 }
 
 void getExpression(string & expression)
 {
+    cout << "Enter expression (0 to exit): ";
     getline(cin, expression);
 }
 
@@ -67,9 +73,43 @@ bool evaluateParenthesis(string inputString)
         return TRUE;
 }
 
-void printPostfix(string expression)
+string evalPostfix(string expression)
 {
-    stack <char> operators;
+    stack<char> operators;
+	string postFix = "";
+		
+	for(int i = 0; i < expression.length(); i++)
+	{
+		if(isOperator(expression[i]))
+		{
+			if(!operators.size())
+			{	
+				//cout << "pushing " << expression[i] << endl;	
+				operators.push(expression[i]);
+			}
+			else
+			{
+				if(!isHigherOp(operators.top(), expression[i]))
+				{
+					//cout << "pushing " << expression[i] << endl;
+					operators.push(expression[i]);
+				}
+				else
+				{
+					//cout << "popping " << operators.top() << endl;
+					postFix = postFix + expression[i] + operators.top();
+					operators.pop();
+				}
+			}
+		}
+	}
+	while(operators.size())
+	{
+		//cout << operators.size();
+		postFix = postFix + operators.top();
+		operators.pop();
+	}
+	return postFix;
 }
 
 bool isNumeric(char charToCompair)
@@ -98,4 +138,13 @@ bool isOperator(char charToCompair)
     }
 }
 
+bool isHigherOp(char firstOp, char secondOp)
+{
+	int firstPrec = 1, secondPrec = 1;
+	if(firstOp == '+' || firstOp == '-')
+		firstPrec = 0;
+	if(secondOp == '+' || secondOp == '-')
+		secondPrec = 0;
+	return secondPrec >= firstPrec;
+}
 
